@@ -1,5 +1,7 @@
+
 package com.example.billtracker.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -7,8 +9,15 @@ import androidx.room.PrimaryKey
 data class Bill(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+
     val name: String = "",
+
     val amount: Double = 0.0,
+
     val dueDate: String = "",
+
+    @ColumnInfo(defaultValue = "''")
+    val category: String = "",
+
     val isPaid: Boolean = false
 )
