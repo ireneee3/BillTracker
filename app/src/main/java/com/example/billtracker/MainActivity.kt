@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.billtracker.data.local.Bill
+import com.example.billtracker.reminders.NotificationPermissionRequester
 import com.example.billtracker.ui.theme.BillTrackerTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -47,8 +48,13 @@ import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
+    // Must be created as a property (registered before the activity starts)
+    private val notificationPermission = NotificationPermissionRequester(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        notificationPermission.requestIfNeeded()   // asks for POST_NOTIFICATIONS on Android 13+
 
         val app = application as BillTrackerApp
 
