@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -29,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +44,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.billtracker.ui.AddEditBillScreen
+import com.example.billtracker.ui.BillDetailsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -78,7 +79,7 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
     )
 
     var currentScreen by remember { mutableStateOf("Dashboard") }
-    var selectedBillId by remember { mutableStateOf(0) }
+    var selectedBillId by remember { mutableIntStateOf(0) }
     var billToDelete by remember { mutableStateOf<Bill?>(null) }
 
     val selectedBill = bills.find { it.id == selectedBillId }
@@ -435,257 +436,3 @@ fun BillsScreen(
     }
 }
 
-@Composable
-fun AddEditBillScreen(
-    existingBill: Bill?,
-    bills: List<Bill>,
-    onSave: suspend (Bill) -> Unit,
-    onBack: () -> Unit
-) {
-
-    var billName by remember(existingBill?.id) {
-        mutableStateOf(existingBill?.name ?: "")
-    }
-
-    var amount by remember(existingBill?.id) {
-        mutableStateOf(existingBill?.amount?.toString() ?: "")
-    }
-
-    var category by remember(existingBill?.id) {
-        mutableStateOf(existingBill?.category ?: "")
-    }
-
-    var dueDate by remember(existingBill?.id) {
-        mutableStateOf(existingBill?.dueDate ?: "")
-    }
-
-    var errorMessage by remember { mutableStateOf("") }
-    var isSaving by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        Text(
-            text = if (existingBill == null) "Add New Bill" else "Edit Bill",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        OutlinedTextField(
-            value = billName,
-            onValueChange = {
-                billName = it
-                errorMessage = ""
-            },
-            label = { Text("Bill Name") },
-            placeholder = { Text("e.g. Electricity") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = amount,
-            onValueChange = {
-                amount = it
-                errorMessage = ""
-            },
-            label = { Text("Amount (KSh)") },
-            placeholder = { Text("e.g. 2500") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal
-            ),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = category,
-            onValueChange = {
-                category = it
-                errorMessage = ""
-            },
-            label = { Text("Category") },
-            placeholder = { Text("e.g. Utilities, Rent, Internet") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = dueDate,
-            onValueChange = {
-                dueDate = it
-                errorMessage = ""
-            },
-            label = { Text("Due Date") },
-            placeholder = { Text("YYYY-MM-DD") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Text(
-            text = "Use the date format YYYY-MM-DD.",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        if (errorMessage.isNotBlank()) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-
-        Button(
-            onClick = {
-
-                errorMessage = ""
-
-                val cleanName = billName.trim()
-                val cleanCategory = category.trim()
-                val cleanAmount = amount.trim().toDoubleOrNull()
-                val cleanDate = dueDate.trim()
-
-                if (
-                    cleanName.isBlank() ||
-                    cleanCategory.isBlank() ||
-                    cleanAmount == null ||
-                    cleanDate.isBlank()
-                ) {
-                    errorMessage = "Please fill in all fields correctly."
-                    return@Button
-                }
-
-                if (cleanAmount <= 0.0) {
-                    errorMessage = "Amount must be greater than zero."
-                    return@Button
-                }
-
-                val dateFormat = SimpleDateFormat(
-                    "yyyy-MM-dd",
-                    Locale.US
-                ).apply {
-                    isLenient = false
-                }
-
-                val parsedDate = try {
-                    dateFormat.parse(cleanDate)
-                } catch (e: Exception) {
-                    null
-                }
-
-                if (
-                    parsedDate == null ||
-                    dateFormat.format(parsedDate) != cleanDate
-                ) {
-                    errorMessage = "Enter a valid date in YYYY-MM-DD format."
-                    return@Button
-                }
-
-                val today = dateFormat.format(Date())
-
-                if (cleanDate < today) {
-                    errorMessage = "The due date cannot be in the past."
-                    return@Button
-                }
-
-                val duplicate = bills.any { bill ->
-                    bill.name.equals(cleanName, ignoreCase = true) &&
-                            bill.id != (existingBill?.id ?: 0)
-                }
-
-                if (duplicate) {
-                    errorMessage = "A bill with this name already exists."
-                    return@Button
-                }
-
-                val bill = Bill(
-                    id = existingBill?.id ?: 0,
-                    name = cleanName,
-                    amount = cleanAmount,
-                    dueDate = cleanDate,
-                    category = cleanCategory,
-                    isPaid = existingBill?.isPaid ?: false
-                )
-
-                scope.launch {
-                    isSaving = true
-
-                    try {
-                        onSave(bill)
-                    } catch (e: Exception) {
-                        errorMessage = e.message
-                            ?: "Unable to save the bill."
-                    } finally {
-                        isSaving = false
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isSaving
-        ) {
-            Text(
-                if (isSaving) "Saving..." else {
-                    if (existingBill == null) "Save Bill" else "Update Bill"
-                }
-            )
-        }
-
-        OutlinedButton(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isSaving
-        ) {
-            Text("Cancel")
-        }
-    }
-}
-
-@Composable
-fun BillDetailsScreen(
-    bill: Bill,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    onBack: () -> Unit
-) {
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-
-        Text(
-            text = "Bill Details",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        DashboardCard("Bill Name", bill.name)
-        DashboardCard("Amount", "KSh ${bill.amount}")
-        DashboardCard("Category", bill.category)
-        DashboardCard("Due Date", bill.dueDate)
-        DashboardCard(
-            "Payment Status",
-            if (bill.isPaid) "Paid" else "Unpaid"
-        )
-
-        Button(
-            onClick = onEdit,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Edit Bill")
-        }
-
-        OutlinedButton(
-            onClick = onDelete,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Delete Bill")
-        }
-
-        OutlinedButton(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Back to Bills")
-        }
-    }
-}
