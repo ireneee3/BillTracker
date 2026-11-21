@@ -24,6 +24,8 @@ fun BillDetailsScreen(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
+    onMarkPaid: () -> Unit,
+    onPaymentHistory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -74,6 +76,22 @@ fun BillDetailsScreen(
                     color = if (bill.isPaid) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
                 )
             }
+        }
+
+        if (!bill.isPaid) {
+            Button(
+                onClick = onMarkPaid,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Mark as Paid")
+            }
+        }
+
+        OutlinedButton(
+            onClick = onPaymentHistory,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Payment History")
         }
 
         Button(
