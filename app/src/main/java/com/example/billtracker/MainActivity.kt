@@ -20,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,18 +33,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.billtracker.data.local.Bill
 import com.example.billtracker.reminders.NotificationPermissionRequester
 import com.example.billtracker.ui.theme.BillTrackerTheme
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import com.example.billtracker.ui.AddEditBillScreen
 import com.example.billtracker.ui.BillDetailsScreen
+import com.example.billtracker.ui.MarkPaidDialog
+import com.example.billtracker.ui.PaymentHistoryScreen
+import com.example.billtracker.data.local.Payment
 
 class MainActivity : ComponentActivity() {
 
@@ -81,6 +78,7 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
     var currentScreen by remember { mutableStateOf("Dashboard") }
     var selectedBillId by remember { mutableIntStateOf(0) }
     var billToDelete by remember { mutableStateOf<Bill?>(null) }
+    var showMarkPaid by remember { mutableStateOf(false) }
 
     val selectedBill = bills.find { it.id == selectedBillId }
     val scope = rememberCoroutineScope()
@@ -179,38 +177,28 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
                     if (selectedBill != null) {
                         BillDetailsScreen(
                             bill = selectedBill,
-                            onEdit = {
-                                currentScreen = "Edit Bill"
-                            },
-                            onDelete = {
-                                billToDelete = selectedBill
-                            },
-                            onBack = {
-                                currentScreen = "Bills"
-                            }
+                            onEdit = { currentScreen = "Edit Bill" },
+                            onDelete = { billToDelete = selectedBill },
+                            onBack = { currentScreen = "Bills" },
+                            onMarkPaid = { showMarkPaid = true },
+                            onPaymentHistory = { currentScreen = "Payment History" }
                         )
                     } else {
                         Text("This bill could not be found.")
-                        Button(onClick = {
-                            currentScreen = "Bills"
-                        }) {
+                        Button(onClick = { currentScreen = "Bills" }) {
                             Text("Back to Bills")
                         }
                     }
                 }
 
                 "Payment History" -> {
-                    Text(
-                        text = "Payment History",
-                        style = MaterialTheme.typography.headlineSmall
+                    val payments by app.paymentRepository.getPayments(selectedBillId)
+                        .collectAsState(initial = emptyList())
+                    PaymentHistoryScreen(
+                        bill = selectedBill,
+                        payments = payments,
+                        onBack = { currentScreen = "Bill Details" }
                     )
-                    Text("Payment history will be displayed here.")
-
-                    OutlinedButton(onClick = {
-                        currentScreen = "Bills"
-                    }) {
-                        Text("Back to Bills")
-                    }
                 }
 
                 "Settings" -> {
@@ -263,6 +251,22 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
                     }
                 ) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showMarkPaid && selectedBill != null) {
+        MarkPaidDialog(
+            bill = selectedBill,
+            onDismiss = { showMarkPaid = false },
+            onConfirm = { amount, date ->
+                scope.launch {
+                    app.paymentRepository.addPayment(
+                        Payment(billId = selectedBill.id, amount = amount, paymentDate = date)
+                    )
+                    app.billRepository.updateBill(selectedBill.copy(isPaid = true))
+                    showMarkPaid = false
                 }
             }
         )
