@@ -31,9 +31,9 @@ Installation and setup instructions will be added once the project configuration
  Project Status
 Development in progress.Team
 	Member	Admission No.
-1 Isaac Mionki	192100
-2 Irene Maithya	172079
-3 Jeremy Mwaka	152715
-4 Terryanne Wanza	189817
-5 Wagakira Kimberly	190761
-6 Okemwa Fredrick	182753
+ Isaac Mionki-192100
+ Irene Maithya-172079
+ Jeremy Mwaka-152715
+ Terryanne Wanza -189817
+ Wagakira Kimberly-	190761
+ Okemwa Fredrick -	182753
