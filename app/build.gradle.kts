@@ -64,4 +64,8 @@ dependencies {
 
     // WorkManager (Member 5 needs it)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Material Icons
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
 }

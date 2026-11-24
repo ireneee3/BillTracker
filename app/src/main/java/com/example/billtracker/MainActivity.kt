@@ -91,8 +91,7 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -202,16 +201,23 @@ fun BillTrackerNavigation(app: BillTrackerApp) {
                 }
 
                 "Settings" -> {
-                    Text(
-                        text = "Settings",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Text("Financial Bill Tracker Settings")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Settings",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text("Financial Bill Tracker Settings")
 
-                    OutlinedButton(onClick = {
-                        currentScreen = "Dashboard"
-                    }) {
-                        Text("Back to Dashboard")
+                        OutlinedButton(onClick = {
+                            currentScreen = "Dashboard"
+                        }) {
+                            Text("Back to Dashboard")
+                        }
                     }
                 }
             }
@@ -289,6 +295,9 @@ fun DashboardScreen(
         .sumOf { it.amount }
 
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -366,6 +375,9 @@ fun BillsScreen(
 ) {
 
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
