@@ -23,17 +23,9 @@ The Financial Bill Tracker provides a central mobile platform for recording and 
 - GitHub for collaboration
 
  Application Architecture
-Architecture and data storage details will be documented based on the final implementation.
-
+Architecture and data storage details will be documented based on the final implementation 
  Installation
 Installation and setup instructions will be added once the project configuration is finalized.
 
  Project Status
-Development in progress.Team
-	Member	Admission No.
- Isaac Mionki-192100
- Irene Maithya-172079
- Jeremy Mwaka-152715
- Terryanne Wanza -189817
- Wagakira Kimberly-	190761
- Okemwa Fredrick -	182753
+Complete
