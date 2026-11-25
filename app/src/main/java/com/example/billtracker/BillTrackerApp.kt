@@ -16,6 +16,6 @@ class BillTrackerApp : Application() {
         super.onCreate()
         NotificationHelper.createChannel(this)   // notification channel (Android 8+)
         ReminderScheduler.scheduleDaily(this)    // daily background check via WorkManager
-        //ReminderScheduler.runNow(this)
+        ReminderScheduler.runNow(this)
     }
 }
